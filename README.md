@@ -1,6 +1,7 @@
 # README
 
-### 開始打新的code之前 同步存在網路上的版本
+### 開始打新的code之前 讓電腦下載(同步)Github上的版本
+### Before typing any new codes, download(pull) the current version from Github
 git pull origin main
 ### 切回主分支
 git checkout main 
