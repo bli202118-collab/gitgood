@@ -1,0 +1,1 @@
+console.log("CourseForum 已成功載入！");

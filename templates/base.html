@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+
+    <!-- RWD 響應式網站 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>
+        {% block title %}
+        CourseForum
+        {% endblock %}
+    </title>
+
+    <!-- Flask 載入 CSS -->
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='css/style.css') }}"
+    >
+</head>
+
+<body>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+
+        <div class="logo">
+            CourseForum
+        </div>
+
+        <div class="nav-links">
+
+            <a href="/">首頁</a>
+
+            <a href="/login">登入</a>
+
+        </div>
+
+    </nav>
+
+    <!-- 頁面內容 -->
+    <main class="main-container">
+
+        {% block content %}
+        {% endblock %}
+
+    </main>
+
+    <!-- Flask 載入 JS -->
+    <script
+        src="{{ url_for('static', filename='js/main.js') }}"
+    ></script>
+
+</body>
+</html>
