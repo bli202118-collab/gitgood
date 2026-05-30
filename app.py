@@ -3,6 +3,8 @@ import re
 import sqlite3
 from pathlib import Path
 
+import requests
+
 from flask import Flask, flash, jsonify, redirect, render_template, request, url_for
 from flask_login import (
 	LoginManager,
@@ -211,7 +213,7 @@ def create_app():
 	app = Flask(__name__, static_folder="static", template_folder="templates")
 	app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev")
 
-	db_path = os.path.join(app.root_path, "app.db")
+	db_path = os.path.join(app.root_path, "12354.db")
 	app.config["SQLALCHEMY_DATABASE_URI"] = f"sqlite:///{db_path}"
 	app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -612,16 +614,41 @@ def create_app():
 
 	@app.route("/courses/<int:course_id>")
 	def course_detail(course_id):
+
 		course = Course.query.get_or_404(course_id)
+
 		reviews = (
 			Review.query.filter_by(course_id=course_id)
 			.order_by(Review.created_at.desc())
 			.all()
 		)
+
+		# count average of rating
+		avg_rating = db.session.query(
+			func.avg(Review.rating)
+		).filter(
+			Review.course_id == course_id
+		).scalar()
+
+		# count amount of reviews
+		review_count = db.session.query(
+			func.count(Review.id)
+		).filter(
+			Review.course_id == course_id
+		).scalar()
+
+		# avoid crash if no reviews are existing
+		if avg_rating is not None:
+			avg_rating = round(avg_rating, 1)
+		else:
+			avg_rating = "No ratings yet"
+
 		return render_template(
 			"course_detail.html",
 			course=course,
 			reviews=reviews,
+			avg_rating=avg_rating,
+			review_count=review_count
 		)
 
 	@app.route("/courses/<int:course_id>/review", methods=["POST"])
@@ -850,6 +877,34 @@ def create_app():
 	@login_required
 	def profile():
 		return render_template("profile.html")
+
+	@app.route("/translate", methods=["POST"])
+	def translate():
+		data = request.get_json()
+
+		text = data.get("text", "")
+		target = data.get("target", "zh")
+
+		try:
+			response = requests.post(
+				"https://libretranslate.de/translate",
+				json={
+					"q": text,
+					"source": "auto",
+					"target": target,
+					"format": "text"
+				}
+			)
+
+			result = response.json()
+			translated_text = result["translatedText"]
+
+		except Exception:
+			translated_text = text
+
+		return jsonify({
+			"translated": translated_text
+    })
 
 	@app.cli.command("init-db")
 	def init_db():
